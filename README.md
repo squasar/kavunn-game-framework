@@ -5,7 +5,7 @@ Two playable Java Swing games built on top of a single, custom-designed entity-c
 - **Snake** — the classic grid-chase game.
 - **Blockfall** — a harder falling-block puzzle inspired by classic line-clearing games, with gravity, rotation, speed scaling, and stack pressure.
 
-![Snake Game — Game Over screen](docs/screenshot.png)
+![Snake Game — Game Over screen](docs/screenshot.png)   ![Blockfall Game — Game Play screen](docs/screenshotTwo.png)
 
 ---
 
