@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-package com.example;
-
-import com.example.core.Relation;
-=======
 import core.Relation;
->>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 public class DirectionCommand implements Relation {
 

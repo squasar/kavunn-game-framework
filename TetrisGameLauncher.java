@@ -1,18 +1,9 @@
-<<<<<<< HEAD
-package com.example;
-
-=======
->>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 import java.util.Random;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-<<<<<<< HEAD
-import com.example.core.Context;
-=======
 import core.Context;
->>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 public final class TetrisGameLauncher {
 

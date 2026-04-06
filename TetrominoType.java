@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-package com.example;
-
-=======
->>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 import java.awt.Color;
 
 public enum TetrominoType {

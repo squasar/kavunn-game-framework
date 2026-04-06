@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-package com.example;
-
-=======
->>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 public enum Direction {
     UP(0, -1),
     DOWN(0, 1),

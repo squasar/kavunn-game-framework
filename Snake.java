@@ -1,21 +1,11 @@
-<<<<<<< HEAD
-package com.example;
-
-=======
->>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 import java.awt.Point;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-<<<<<<< HEAD
-import com.example.core.Entity;
-import com.example.core.Relation;
-=======
 import core.Entity;
 import core.Relation;
->>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 public class Snake extends Entity<Relation> {
 

@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-package com.example;
-
-=======
->>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 public class Main {
     public static void main(String[] args) {
         if (args.length > 0 && "--smoke-test".equalsIgnoreCase(args[0])) {
