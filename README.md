@@ -1,11 +1,22 @@
 # Java Game Playground — Kavunn Engine
 
+<<<<<<< HEAD
 Two playable Java Swing games built on top of a single, custom-designed entity-command framework (the **Kavunn Engine**):
 
 - **Snake** — the classic grid-chase game.
 - **Blockfall** — a harder falling-block puzzle inspired by classic line-clearing games, with gravity, rotation, speed scaling, and stack pressure.
 
 ![Snake Game — Game Over screen](docs/screenshot.png)   ![Blockfall Game — Game Play screen](docs/screenshotTwo.PNG)
+=======
+Three playable Java Swing games built on top of a custom-designed entity-command framework (the **Kavunn Engine**), backed by a full rendering pipeline, a 2D physics engine, an asset management system, and cross-platform surface abstractions:
+
+- **Snake** — the classic grid-chase game.
+- **Blockfall** — a harder falling-block puzzle inspired by classic line-clearing games, with gravity, rotation, speed scaling, and stack pressure.
+- **Ashwake** — a top-down arena-survival roguelite with room progression, six enemy archetypes, projectile combat, modifier upgrades, and a built-in benchmark suite.
+
+![Ashwake — Arena survival roguelite](docs/ashwakeSS.PNG)
+![Snake Game — Game Over screen](docs/screenshot.png)
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 ---
 
@@ -27,6 +38,28 @@ Two playable Java Swing games built on top of a single, custom-designed entity-c
   - [Invoker](#invoker)
   - [EntitiesGraph](#entitiesgraph)
   - [Context](#context)
+<<<<<<< HEAD
+=======
+- [Rendering Pipeline (`render/`)](#rendering-pipeline-render)
+  - [Universe](#universe)
+  - [Planet](#planet)
+  - [Matter](#matter)
+  - [RenderingPipeline](#renderingpipeline)
+  - [RenderTask & RenderBackend](#rendertask--renderbackend)
+  - [SwingRenderingPanel](#swingrenderingpanel)
+  - [Backend Implementations](#backend-implementations)
+- [Physics Engine (`physics/`)](#physics-engine-physics)
+  - [PhysicsScene & PhysicsSpace](#physicsscene--physicsspace)
+  - [PhysicsBody & PhysicsMaterial](#physicsbody--physicsmaterial)
+  - [Geometry](#geometry)
+  - [Collision Detection](#collision-detection)
+  - [Forms](#forms)
+  - [PhysicsPipeline](#physicspipeline)
+  - [Physics Backend](#physics-backend)
+  - [Authoring & Importing](#authoring--importing)
+- [Asset Manager (`assetmanager/`)](#asset-manager-assetmanager)
+- [Platform Abstraction (`platform/`)](#platform-abstraction-platform)
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 - [Shared Wiring](#shared-wiring)
   - [GameContextFactory](#gamecontextfactory)
   - [Main](#main)
@@ -50,18 +83,37 @@ Two playable Java Swing games built on top of a single, custom-designed entity-c
   - [TetrisGamePanel](#tetrisgamepanel)
   - [TetrisGameLauncher](#tetrisgamelauncher)
   - [Blockfall Mechanics](#blockfall-mechanics)
+<<<<<<< HEAD
+=======
+- [Ashwake Game](#ashwake-game)
+  - [AshwakeRunWorld](#ashwakerunworld)
+  - [AshwakePlayer](#ashwakeplayer)
+  - [Enemies](#enemies)
+  - [Projectiles, Hazards & Pickups](#projectiles-hazards--pickups)
+  - [Room Progression](#room-progression)
+  - [Modifier System](#modifier-system)
+  - [Commands](#commands)
+  - [Benchmark Suite](#benchmark-suite)
+  - [Ashwake Mechanics](#ashwake-mechanics)
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 - [Requirements](#requirements)
 - [Build](#build)
 - [Run](#run)
 - [Controls](#controls)
 - [Smoke Tests](#smoke-tests)
+<<<<<<< HEAD
 - [Output Directory](#output-directory)
+=======
+- [Benchmarks](#benchmarks)
+- [Output Directories](#output-directories)
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 - [Extending the Project](#extending-the-project)
 
 ---
 
 ## Why This Is Interesting
 
+<<<<<<< HEAD
 These are not throwaway game demos. The project is a practical case study in **software architecture** — every moving part in both games is wired through a hand-built entity-command framework that applies four classic Gang-of-Four design patterns in a single, cohesive system:
 
 - **The entire game loop runs through the Command pattern.** Every tick, the world itself is queued as a `Relation` command and executed by the `Context`. Player inputs (direction changes, rotations, drops, restarts) are queued through the exact same pipeline — there is no special-case code for "user actions" vs. "engine ticks".
@@ -72,6 +124,20 @@ These are not throwaway game demos. The project is a practical case study in **s
 The result is that both games contain **zero framework-specific boilerplate**. `SnakeWorld.execute()` just calls `step()`. `TetrisWorld.execute()` just calls `tick()`. `DirectionCommand.execute()` just calls `snake.queueDirection(dir)`. The framework handles queuing, execution ordering, history tracking, and entity registration — while the game layers stay clean and focused on game logic.
 
 The proof of this separation is the second game itself: Blockfall was built on the same `core/` package without modifying a single framework file. The `core/` package could be lifted out and reused for an entirely different domain — a simulation, an ECS prototype, a turn-based strategy — without changing a line.
+=======
+These are not throwaway game demos. The project is a practical case study in **software architecture** — every moving part in all three games is wired through a hand-built entity-command framework that applies four classic Gang-of-Four design patterns in a single, cohesive system:
+
+- **The entire game loop runs through the Command pattern.** Every tick, the world itself is queued as a `Relation` command and executed by the `Context`. Player inputs (direction changes, rotations, drops, dashes, fire commands) are queued through the exact same pipeline — there is no special-case code for "user actions" vs. "engine ticks".
+- **Game objects are a Composite hierarchy.** `SnakeWorld` owns `Snake` and `Food` as child entities. `TetrisWorld` owns `TetrisBoard` and `FallingPiece`. `AshwakeRunWorld` owns `AshwakePlayer` and `AshwakeRoomWorld`, which in turn owns enemies, projectiles, hazards, and pickups. The framework doesn't know what a snake, a tetromino, or a projectile is — it just sees a tree of `Entity` nodes that it can traverse, update, and execute uniformly.
+- **Relationships are modeled as a graph.** The `EntitiesGraph` maintains an undirected adjacency list (world ↔ children). Entity relationships are data, not hardcoded method calls — making the system extensible without touching existing classes.
+- **Parameters are first-class.** Every entity inherits a typed key-value store (`Params`), so runtime attributes can be attached, queried, and modified without subclassing. Ashwake uses this extensively for render metadata (`layerHint`, `materialKey`, `animationState`, `glowLevel`, etc.).
+
+The result is that all three games contain **zero framework-specific boilerplate**. `SnakeWorld.execute()` just calls `step()`. `TetrisWorld.execute()` just calls `tick()`. `AshwakeRunWorld.execute()` just calls `update(delta)`. The framework handles queuing, execution ordering, history tracking, and entity registration — while the game layers stay clean and focused on game logic.
+
+The proof of this separation is Blockfall (built on `core/` with no framework changes) and Ashwake (built on `core/` + `render/` with no core changes, adding the rendering pipeline and a full roguelite on top). The `core/` package could be lifted out and reused for an entirely different domain — a simulation, an ECS prototype, a turn-based strategy — without changing a line.
+
+Beyond the games, the project includes a multi-backend **rendering pipeline** (Java2D, OpenGL, OpenGL ES, Metal), a 2D **physics engine** with collision detection and rigid-body simulation, an **asset management system** with image-to-mesh preparation, and **cross-platform surface abstractions** for iOS and mobile — all built on the same entity-command foundation.
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 ---
 
@@ -113,16 +179,33 @@ Please include a brief introduction, your area of expertise, and — if availabl
 
 ## Overview
 
+<<<<<<< HEAD
 The codebase started as a small reusable entity-command framework (the Kavunn Engine). It now includes two complete games and a shared factory so both games register themselves consistently through the framework.
+=======
+The codebase started as a small reusable entity-command framework (the Kavunn Engine). It now includes three complete games, a rendering pipeline with multi-backend support, a 2D physics engine, an asset management system, and cross-platform surface abstractions.
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 | Layer | Package / Location | Purpose |
 |---|---|---|
 | **Core Framework** | `core/` | A generic, reusable entity-management engine with command queuing, graph-based relationships, composite hierarchies, and typed parameter storage. |
+<<<<<<< HEAD
 | **Snake Game** | Root — `Snake*.java`, `Direction*.java`, `Food.java`, `RestartSnakeCommand.java` | The classic grid-chase game, modeled as entities and commands. |
 | **Blockfall Game** | Root — `Tetris*.java`, `FallingPiece.java`, `TetrominoType.java` | A falling-block puzzle game, built on the same core with no framework modifications. |
 | **Shared Wiring** | Root — `GameContextFactory.java`, `Main.java` | Entry point and shared context creation so both games register identically. |
 
 All source files live under the `com.example` package.
+=======
+| **Rendering Pipeline** | `render/` | A multi-backend rendering pipeline architecture with Universe → Planet → Matter hierarchy, lifecycle management, and pluggable render tasks. Backends: Java2D, OpenGL (LWJGL), OpenGL ES (Android/iOS), Metal (iOS). |
+| **Physics Engine** | `physics/` | A 2D physics simulation framework with rigid bodies, collision detection (narrow-phase + spatial-hash broadphase), geometry primitives, form authoring, raster-shape importing, and a pluggable pipeline mirroring the render architecture. |
+| **Asset Manager** | `assetmanager/` | Asset cataloging, manifest loading/validation, image-to-mesh preparation, and OpenGL draft libraries for materials, textures, shaders, palettes, fonts, and UI modules. |
+| **Platform** | `platform/` | Cross-platform surface and input abstractions for iOS (Metal + OpenGL ES) and generic mobile (OpenGL ES), including touch event handling and safe-area support. |
+| **Snake Game** | Root — `Snake*.java`, `Direction*.java`, `Food.java`, `RestartSnakeCommand.java` | The classic grid-chase game, modeled as entities and commands. |
+| **Blockfall Game** | Root — `Tetris*.java`, `FallingPiece.java`, `TetrominoType.java` | A falling-block puzzle game, built on the same core with no framework modifications. |
+| **Ashwake Game** | `ashwake/` | A top-down arena-survival roguelite with room progression, modifier upgrades, six enemy archetypes, projectile combat, and a built-in benchmark suite. Uses the `render/` pipeline. |
+| **Shared Wiring** | Root — `GameContextFactory.java`, `Main.java` | Entry point and shared context creation for Snake and Blockfall. |
+
+All source files use Java package conventions (`core`, `render`, `physics`, `assetmanager`, `platform.ios`, `platform.mobile`, `ashwake`, or default `com.example` for root files).
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 ---
 
@@ -132,6 +215,7 @@ All source files live under the `com.example` package.
 
 ```
 Playground/
+<<<<<<< HEAD
 ├── core/                          # Kavunn Engine — reusable entity-command framework
 │   ├── Association.java           # Identity + structural-update interface
 │   ├── Context.java               # Central command bus & entity registry
@@ -169,6 +253,100 @@ Playground/
 ├── out/                           # Compiled .class files (build output)
 │   └── com/example/...
 └── README.md                      # This file
+=======
+├── core/                              # Kavunn Engine — reusable entity-command framework
+│   ├── Association.java               # Identity + structural-update interface
+│   ├── Context.java                   # Central command bus & entity registry
+│   ├── Entity.java                    # Base entity: Params + Association + Relation + Composite
+│   ├── EntitiesGraph.java             # Adjacency-list graph of entity relationships
+│   ├── Invoker.java                   # Batched command execution (broker pattern)
+│   ├── ParamValue.java                # Marker interface for parameter values
+│   ├── Params.java                    # Key-value parameter store on every entity
+│   ├── PrimaryTypeValue.java          # Type-safe wrapper for int, double, String, boolean, generic
+│   └── Relation.java                  # Command interface — void execute()
+│
+├── render/                            # Rendering pipeline framework
+│   ├── Universe.java                  # Top-level render context; mounts a Planet
+│   ├── Planet.java                    # Abstract world entity with lifecycle + Matter list
+│   ├── Matter.java                    # Render-param container extending EntitiesGraph
+│   ├── RenderingPipeline.java         # Abstract pipeline: validate → bind → iterate matters → dispatch tasks
+│   ├── DefaultRenderingPipeline.java  # Concrete pipeline with a pluggable task list
+│   ├── RenderTask.java               # Functional interface for render operations
+│   ├── RenderBackend.java            # Interface for backend drivers
+│   ├── SwingRenderingPanel.java       # JPanel adapter for Java2D rendering
+│   ├── Java2DRenderBackend.java       # Java2D backend
+│   ├── Java2DRenderTask.java          # Java2D-specific render task
+│   ├── OpenGLRenderBackend.java       # Desktop OpenGL backend
+│   ├── LwjglOpenGLBridge.java         # LWJGL 3.4.1 native bridge
+│   ├── OpenGLESRenderBackend.java     # Mobile OpenGL ES backend
+│   ├── AndroidOpenGLESBridge.java     # Android OpenGL ES bridge
+│   ├── IosOpenGLESBridge.java         # iOS OpenGL ES bridge
+│   ├── MetalRenderBackend.java        # Apple Metal backend
+│   ├── IosMetalBridge.java            # iOS Metal bridge
+│   ├── NoOpRenderBackend.java         # Silent backend for testing
+│   └── ...                            # Constants, bridge exceptions, domain entities
+│
+├── physics/                           # 2D physics engine
+│   ├── scene/                         # PhysicsScene, PhysicsSpace, PhysicsMatter
+│   ├── body/                          # PhysicsBody, PhysicsMaterial, MotionState
+│   ├── geometry/                      # Vector2, Transform2, Bounds2, Circle2, Quad2, Triangle2, Mesh2, Contour2, Triangulator2
+│   ├── form/                          # Form2 interface, CircleForm, QuadForm, TriangleForm, MeshForm, CompositeForm
+│   ├── collision/                     # CollisionDetector2, CollisionReport, ContactManifold, Raycast/Overlap/Sweep commands
+│   ├── pipeline/                      # PhysicsPipeline, DefaultPhysicsPipeline, PhysicsTask
+│   ├── backend/                       # DeterministicPhysicsBackend, SpatialHashBroadphase, NoOp
+│   ├── authoring/                     # AnchorPoint, FormComposer, FormMorpher
+│   ├── importing/                     # ContourTracer, RasterShapeExtractor — bitmap-to-physics-form conversion
+│   └── palette/                       # PhysicsColor, PaletteExtractor, PaletteSet, PaletteSwatch
+│
+├── assetmanager/                      # Asset management system
+│   ├── AssetManager.java              # Central manager for entity bundles and draft libraries
+│   ├── AssetManagerSmokeTest.java     # Comprehensive smoke test
+│   ├── catalog/                       # AssetCatalog, AssetKey, EntityAssetBundle
+│   ├── font/                          # FontStyle
+│   ├── manifest/                      # Manifest loading, importing, validation, authoring adapter
+│   ├── mesh/                          # Image → mesh pipeline (EntityMeshSequence, ImageMeshBuilder)
+│   ├── opengl/                        # OpenGL draft library: materials, textures, shaders, palettes, fonts, UI
+│   ├── pipeline/                      # AssetPreparationPipeline, reports, tasks
+│   ├── source/                        # Image asset sources (BufferedImage, Path, EntityImageSequence)
+│   └── ui/                            # UiElementType
+│
+├── platform/                          # Cross-platform surface abstractions
+│   ├── ios/                           # iOS: Metal + OpenGL ES surfaces, touch input, safe area
+│   │   └── nativebridge/              # iOS native Metal bridge
+│   └── mobile/                        # Generic mobile: OpenGL ES surface, touch events
+│
+├── ashwake/                           # Ashwake — arena-survival roguelite
+│   ├── AshwakeLauncher.java           # Entry point: launch, smoke test, benchmark
+│   ├── AshwakeContextFactory.java     # Context + entity graph wiring
+│   ├── AshwakeRunWorld.java           # Top-level run entity — room progression, combat, scoring
+│   ├── AshwakePlayer.java             # Player entity — health, ward, energy, dash, fire
+│   ├── AshwakeRoomWorld.java          # Room container — enemies, projectiles, hazards, pickups
+│   ├── AshwakeEnemy.java              # 6 enemy archetypes with distinct AI
+│   ├── AshwakeProjectile.java         # 5 projectile kinds with pierce/lifetime
+│   ├── AshwakeHazard.java             # Area-of-effect zones (friendly and hostile)
+│   ├── AshwakePickup.java             # 3 pickup types: health, ember, energy
+│   ├── AshwakeModifier.java           # 8 run modifiers (roguelite upgrades)
+│   ├── AshwakeRoomKind.java           # 5 room types: Combat, Reward, Event, Elite, Boss
+│   ├── AshwakeCommands.java           # 8 command classes (move, fire, dash, pause, etc.)
+│   ├── AshwakeGamePanel.java          # SwingRenderingPanel subclass with input handling
+│   ├── AshwakeRenderFactory.java      # Java2D rendering pipeline + visual styling
+│   ├── AshwakeBenchmark.java          # Performance benchmark suite (warmup + measured frames)
+│   └── AshwakeBenchmarkScenario.java  # 3 benchmark scenarios
+│
+├── GameContextFactory.java            # Shared: creates Context + registers world & children
+├── Main.java                          # Entry point: --smoke-test, snake, blockfall
+│
+├── Direction.java … SnakeWorld.java   # Snake game (8 files)
+├── TetrominoType.java … TetrisWorld.java  # Blockfall game (8 files)
+│
+├── lib/lwjgl/3.4.1/                   # LWJGL native OpenGL bindings
+├── docs/                              # Screenshots and documentation assets
+├── out/                               # Compiled output (Snake + Blockfall)
+├── out_ashwake/                        # Compiled output (Ashwake)
+├── out_verify/                         # Verification build output
+├── LICENSE                             # Kavunn Engine Source-Available License
+└── README.md                           # This file
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 ```
 
 ### Design Patterns
@@ -184,11 +362,19 @@ The project applies four classic GoF patterns, all wired through the core framew
 
 ### How the Shared Core Is Used
 
+<<<<<<< HEAD
 Both games follow the identical pattern:
 
 1. A world class extends `Entity<Relation>` (`SnakeWorld` / `TetrisWorld`).
 2. Child entities are attached to that world via `addChildEntity()`.
 3. `GameContextFactory.create(world)` builds a `Context`, registers the world + all children in the entity list and graph, and adds world ↔ child edges.
+=======
+All three games follow the identical pattern:
+
+1. A world class extends `Entity<Relation>` (`SnakeWorld` / `TetrisWorld`) or `Planet` (`AshwakeRunWorld`).
+2. Child entities are attached to that world via `addChildEntity()`.
+3. A context factory (`GameContextFactory.create()` or `AshwakeContextFactory.create()`) builds a `Context`, registers the world + all children in the entity list and graph, and adds world ↔ child edges.
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 4. Player actions are wrapped as `Relation` commands and queued through the context.
 5. Each timer tick queues the world itself as a command, which runs the next step of game logic through `execute()`.
 
@@ -355,6 +541,252 @@ Command lifecycle:
 
 ---
 
+<<<<<<< HEAD
+=======
+## Rendering Pipeline (`render/`)
+
+The rendering pipeline provides a structured, multi-backend architecture for drawing game worlds. It mirrors the core framework's entity model and introduces three domain abstractions — **Universe**, **Planet**, and **Matter** — that organize render state hierarchically.
+
+### Universe
+
+```java
+public class Universe extends Matter
+```
+
+The top-level rendering context. A `Universe` holds a `Context` (the rendering context, separate from the game context) and an active `Planet`. When a planet is mounted via `mountPlanet(planet)`, it is registered in the rendering context's entity list and set as the current state.
+
+### Planet
+
+```java
+public abstract class Planet extends Entity<Relation>
+```
+
+An abstract world entity with a managed lifecycle and a list of `Matter` objects. Every game world that participates in the render pipeline extends `Planet` (e.g. `AshwakeRunWorld`).
+
+**Lifecycle states**: `CREATED → RUNNING → PAUSED → CLOSED → EXITED`
+
+| Method | Description |
+|---|---|
+| `startPlanet()` | Transition to `RUNNING`. |
+| `pausePlanet()` / `resumePlanet()` | Toggle pause. |
+| `closePlanet()` / `restartPlanet()` | Close or restart. |
+| `exitPlanet()` | Terminal state — cannot be restarted. |
+| `canExecutePlanet()` | Returns `true` only when `RUNNING`. Subclasses check this in `execute()`. |
+| `addMatter()` / `getMatters()` | Register render layers. |
+
+### Matter
+
+```java
+public class Matter extends EntitiesGraph implements Iterable<Map.Entry<String, Params>>
+```
+
+A render-parameter container that extends `EntitiesGraph`. Each `Matter` holds a `LinkedHashMap<String, Params>` of named render parameters (layer hint, material key, sort bias, etc.). Matters are iterated by the pipeline in registration order and represent logical render layers (backdrop, arena, actors, projectiles, HUD, etc.).
+
+### RenderingPipeline
+
+```java
+public abstract class RenderingPipeline
+```
+
+The abstract rendering pipeline. The `render(Universe, Planet, RenderBackend)` method drives the following sequence:
+
+1. **Validate** — null checks.
+2. **Prepare lifecycle** — auto-start created/closed planets.
+3. **Bind** — mount the planet in the universe.
+4. **Begin frame** — `backend.beginFrame()`.
+5. **For each Matter** — `beforeMatter()` → execute matching `RenderTask` objects → `afterMatter()`.
+6. **End frame** — `backend.endFrame()`.
+
+`DefaultRenderingPipeline` extends this with a pluggable list of `RenderTask` objects.
+
+### RenderTask & RenderBackend
+
+```java
+@FunctionalInterface
+public interface RenderTask {
+    void execute(RenderBackend backend, Universe universe, Planet planet, Matter matter);
+}
+```
+
+```java
+public interface RenderBackend {
+    String getBackendName();
+    // beginFrame, beforeMatter, afterMatter, endFrame
+}
+```
+
+Tasks are the unit of rendering work. Each task can query `supports(backend)` to skip incompatible backends. The backend interface abstracts the underlying graphics API.
+
+### SwingRenderingPanel
+
+```java
+public class SwingRenderingPanel extends JPanel
+```
+
+A `JPanel` adapter that bridges the pipeline into Java2D. On every `paintComponent()` call, it creates a `Java2DRenderBackend`, invokes the pipeline, and disposes the graphics context. Subclasses override `beforePipelineRender()` / `afterPipelineRender()` for custom setup.
+
+### Backend Implementations
+
+| Backend | Class | Platform |
+|---|---|---|
+| **Java2D** | `Java2DRenderBackend` | Desktop (Swing) |
+| **OpenGL** | `OpenGLRenderBackend` + `LwjglOpenGLBridge` | Desktop (LWJGL 3.4.1) |
+| **OpenGL ES** | `OpenGLESRenderBackend` + `AndroidOpenGLESBridge` / `IosOpenGLESBridge` | Android / iOS |
+| **Metal** | `MetalRenderBackend` + `IosMetalBridge` | iOS |
+| **No-op** | `NoOpRenderBackend` | Testing / benchmarks |
+
+---
+
+## Physics Engine (`physics/`)
+
+A 2D physics simulation framework with 10 sub-packages. It follows the same pipeline architecture as the render system but operates on physical bodies instead of visual matters.
+
+### PhysicsScene & PhysicsSpace
+
+`PhysicsScene` mirrors `Planet` — an abstract entity with the same lifecycle states (`CREATED → RUNNING → PAUSED → CLOSED → EXITED`), a list of `PhysicsMatter` groups, and a configurable gravity vector (`Vector2`, default `(0, 9.81)`).
+
+`PhysicsSpace` mirrors `Universe` — it mounts a `PhysicsScene` and provides the top-level simulation context.
+
+### PhysicsBody & PhysicsMaterial
+
+```java
+public class PhysicsBody extends Entity<Relation>
+```
+
+A rigid body with position, rotation, velocity, mass, collision layers, and a `Form2` shape. Key features:
+
+- **MotionState**: transform + linear velocity + force accumulator.
+- **Dynamic vs. static**: setting mass to 0 makes the body static.
+- **Sensor mode**: detects overlaps without physical response.
+- **Collision filtering**: bitwise layer/mask system.
+- **Cached geometry**: world-space mesh, contour, and bounds are lazily computed and invalidated on transform changes.
+
+`PhysicsMaterial` holds `friction` and `restitution` (bounce) coefficients.
+
+### Geometry
+
+`physics.geometry` provides the 2D math primitives:
+
+| Class | Description |
+|---|---|
+| `Vector2` | Immutable 2D vector with add, subtract, multiply, dot, cross, normalize, distance, lerp. |
+| `Transform2` | Position + rotation + scale; `apply(Vector2)` transforms points. |
+| `Bounds2` | Axis-aligned bounding box with overlap/containment tests. |
+| `Circle2` | Center + radius. |
+| `Quad2` | Four-vertex quadrilateral. |
+| `Triangle2` | Three-vertex triangle. |
+| `Mesh2` | Triangle-soup mesh (list of `Triangle2`). |
+| `Contour2` | Ordered point loop for collision shapes. |
+| `Triangulator2` | Ear-clipping triangulation for contours → meshes. |
+| `Geometry2` | Static utilities (line intersection, point-in-triangle, etc.). |
+
+### Collision Detection
+
+`physics.collision` provides narrow-phase and query APIs:
+
+| Class | Description |
+|---|---|
+| `CollisionDetector2` | Full narrow-phase: circle–circle, circle–polygon, polygon–polygon (SAT), mesh–mesh. |
+| `CollisionReport` | Result: hit flag, contact manifold, penetration depth, normal. |
+| `ContactManifold` / `ContactPoint` | Contact geometry for resolution. |
+| `OverlapCommand` | Boolean overlap query between two bodies. |
+| `RaycastCommand` / `RaycastHit` | Ray-vs-body intersection with hit point, normal, distance. |
+| `SweepCommand` | Swept-body collision test. |
+
+### Forms
+
+`physics.form` provides shape definitions consumed by both collision and rendering:
+
+| Form | Description |
+|---|---|
+| `CircleForm` | Circle shape. |
+| `QuadForm` | Quad shape. |
+| `TriangleForm` | Triangle shape. |
+| `MeshForm` | Arbitrary triangle-mesh shape. |
+| `CompositeForm` | Union of multiple sub-forms. |
+
+All forms implement `Form2`, which provides `toWorldMesh()`, `toWorldContour()`, and `getLocalBounds()`.
+
+### PhysicsPipeline
+
+```java
+public abstract class PhysicsPipeline
+```
+
+Mirrors `RenderingPipeline` structure. The `simulate(PhysicsSpace, PhysicsScene, deltaSeconds, PhysicsBackend)` method drives:
+
+1. Validate → prepare lifecycle → bind.
+2. **For each PhysicsMatter** → **for each PhysicsBody** → execute `PhysicsTask` objects.
+3. `backend.step()` → after-simulation hooks.
+
+### Physics Backend
+
+| Backend | Description |
+|---|---|
+| `DeterministicPhysicsBackend` | Full simulation: integration, broadphase, narrowphase, resolution. |
+| `SpatialHashBroadphase` | Grid-based spatial hashing for efficient pair generation. |
+| `NoOpPhysicsBackend` | Silent backend for testing. |
+
+### Authoring & Importing
+
+- **`FormComposer`** — programmatic shape composition (merge, offset, scale forms).
+- **`FormMorpher`** — interpolate between two forms over time.
+- **`AnchorPoint`** — named attachment points on forms.
+- **`ContourTracer`** — trace contours from binary raster images (marching-squares).
+- **`RasterShapeExtractor`** — full bitmap → physics-form pipeline with configurable options and profiles.
+- **`PaletteExtractor`** — extract dominant color palettes from images.
+
+---
+
+## Asset Manager (`assetmanager/`)
+
+A comprehensive asset cataloging and preparation system. The `AssetManager` entry point manages two catalogs:
+
+- **Entity bundles** (`EntityAssetBundle`) — image sequences, mesh data, and prepared GPU-ready assets keyed by `AssetKey`.
+- **Draft libraries** (`OpenGLDraftLibrary`) — OpenGL material, texture, shader, palette, font, and UI module drafts.
+
+Key sub-packages:
+
+| Package | Purpose |
+|---|---|
+| `catalog/` | `AssetCatalog<T>` — generic keyed registry. `AssetKey` — composite key. `EntityAssetBundle` — bundle of image frames + prepared meshes. |
+| `manifest/` | `AssetManifestLoader` — load manifests from disk. `AssetManifestImporter` — import external assets. `AssetManifestValidator` — validate manifest integrity. `AssetAuthoringManifestAdapter` — bridge manifests to the authoring pipeline. |
+| `mesh/` | `ImageMeshBuilder` — convert images to triangle meshes via contour tracing. `EntityMeshSequence` — ordered mesh frames for animation. |
+| `pipeline/` | `AssetPreparationPipeline` / `DefaultAssetPreparationPipeline` — run preparation tasks and produce `AssetPreparationReport` results. |
+| `source/` | `ImageAssetSource` — abstraction for image loading. Implementations: `BufferedImageAssetSource`, `PathImageAssetSource`. `EntityImageSequence` — ordered image frames. |
+| `opengl/` | Draft descriptors for OpenGL resources: materials, textures, shaders, palettes, fonts, UI elements, and UI modules. |
+
+---
+
+## Platform Abstraction (`platform/`)
+
+Cross-platform surface and input abstractions for mobile deployment.
+
+### iOS (`platform/ios/`)
+
+| Class | Purpose |
+|---|---|
+| `IosSurface` | Interface: surface lifecycle + `renderFrame()`. |
+| `IosMetalSurface` | Metal-backed surface with CAMetalLayer integration. |
+| `IosOpenGLESSurface` | OpenGL ES-backed surface with EAGLContext. |
+| `IosInputAdapter` | Touch event → game command adapter. |
+| `IosTouchEvent` / `IosTouchPhase` | Touch data model. |
+| `IosSafeAreaInsets` | Safe area insets for notched devices. |
+| `IosInterfaceOrientation` | Portrait/landscape/flat orientation. |
+| `IosMetalNativeBridge` | JNI-style bridge for Metal commands. |
+
+### Mobile (`platform/mobile/`)
+
+| Class | Purpose |
+|---|---|
+| `MobileSurface` | Generic mobile surface interface. |
+| `MobileOpenGLESSurface` | OpenGL ES surface with context management. |
+| `MobileInputAdapter` | Touch event adapter. |
+| `MobileTouchEvent` / `MobileTouchAction` | Touch data model (DOWN, MOVE, UP, CANCEL). |
+
+---
+
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 ## Shared Wiring
 
 ### GameContextFactory
@@ -775,22 +1207,192 @@ Key press → queue TetrisActionCommand → executeQueuedCommands → update tim
 
 ---
 
+<<<<<<< HEAD
 ## Requirements
 
 - **JDK 21** or later (uses enhanced `switch` with arrow-case syntax and pattern matching).
 - **No external dependencies** — Swing is included with the standard JDK.
+=======
+## Ashwake Game
+
+A top-down arena-survival roguelite built on the `core/` framework and the `render/` pipeline. The player navigates through a fixed sequence of five rooms — each with distinct encounter types — collecting upgrades and defeating enemies culminating in a boss fight.
+
+### AshwakeRunWorld
+
+```java
+public class AshwakeRunWorld extends Planet
+```
+
+Entity ID: **9100**. The top-level run entity. Extends `Planet` (from `render/`) to participate in the rendering pipeline. Contains `AshwakePlayer` and `AshwakeRoomWorld` as composite children.
+
+| Field | Description |
+|---|---|
+| `player` | The player entity. |
+| `roomWorld` | The current room container with all active game objects. |
+| `roomSequence` | Fixed progression: Combat → Reward → Event → Elite → Boss. |
+| `activeModifiers` | `EnumSet` of chosen run upgrades. |
+| `kills`, `essence`, `score` | Run statistics. |
+
+The world registers 8 `Matter` render layers: backdrop, arena, hazards, pickups, actors, projectiles, overlay, and HUD — each with layer hints, material keys, and sort biases.
+
+### AshwakePlayer
+
+Entity ID: **9101**. The survivor entity with 3 resource bars:
+
+| Resource | Max | Regen |
+|---|---|---|
+| **Health** | 120 | None (pickup only) |
+| **Ward** | 40 | 5.5/s (absorbs damage first) |
+| **Energy** | 100 | 22/s (used for dash + secondary) |
+
+| Stat | Base Value |
+|---|---|
+| Move speed | 228 px/s |
+| Projectile speed | 460 px/s |
+| Attack interval | 0.23 s |
+| Dash cooldown | 1.15 s, costs 22 energy |
+| Dash speed | 720 px/s for 0.15 s |
+| Critical chance | 8% |
+| Dash i-frames | 0.20 s |
+| Damage grace period | 0.36 s |
+
+### Enemies
+
+Six archetypes with distinct AI, all extending `Entity<Relation>`:
+
+| Kind | HP | Behavior |
+|---|---|---|
+| `CHASER` | 28 | Pursues the player directly. Deals contact damage. |
+| `CASTER` | 24 | Maintains distance. Fires `CURSE_ORB` projectiles. |
+| `DASH_STRIKER` | 34 | Telegraphs (0.34 s), then lunges at high speed. |
+| `AREA_SEEDER` | 42 | Orbits the player. Periodically drops hazard zones. |
+| `SUMMONER` | 58 | Keeps distance. Spawns pairs of chaser minions + fires shadow needles. |
+| `BOSS` | 360 | Fires 3-projectile fan spreads, spawns hazards + minions. Enrages below 45% HP. |
+
+Elite-scaled enemies (in rooms 4+) receive ×1.45 HP, ×1.08 speed, ×1.2 damage.
+
+### Projectiles, Hazards & Pickups
+
+**Projectiles** (`AshwakeProjectile`): 5 kinds with configurable speed, damage, lifetime, and pierce count.
+
+| Kind | Radius | Source |
+|---|---|---|
+| `EMBER_BOLT` | 6 | Player primary fire |
+| `CURSE_ORB` | 7 | Casters, empowered enemies |
+| `SHADOW_NEEDLE` | 4.5 | Summoners |
+| `PULSE_SPARK` | 5.5 | Chainburst radial ability |
+| `BOSS_COMET` | 10 | Boss attacks |
+
+**Hazards** (`AshwakeHazard`): Area-of-effect zones — either friendly (from Shock Dash) or hostile (from enemies). Deal damage per second to targets within radius. Expire after a set lifetime.
+
+**Pickups** (`AshwakePickup`): 3 types with a bobbing animation.
+
+| Type | Effect |
+|---|---|
+| `HEALTH_ORB` | Restores health. |
+| `EMBER_SHARD` | Adds essence (currency) + score. |
+| `ENERGY_BLOOM` | Restores energy. |
+
+### Room Progression
+
+| Room | Type | Description |
+|---|---|---|
+| 1 | **Combat** | 9+ enemies, 1 hazard. Clear all to advance. |
+| 2 | **Reward** | Choose 1 of 3 modifier upgrades. |
+| 3 | **Event** | Pickup shrine. Collect items, then advance. |
+| 4 | **Elite** | Empowered summoner + 4 elite enemies + 2 hazards. |
+| 5 | **Boss** | Boss + 2 support enemies. Defeat to win the run. |
+
+### Modifier System
+
+Between rooms, the player chooses run modifiers from the `AshwakeModifier` enum:
+
+| Modifier | Effect |
+|---|---|
+| **Split Shot** | Primary fire emits 2 angled side bolts. |
+| **Piercing Sigil** | Projectiles pierce through 1 extra target. |
+| **Shock Dash** | Dash leaves a damaging ember ring. |
+| **Ember Bloom** | Defeated enemies drop more ember shards. |
+| **Ward Aura** | Passive aura deals 14 DPS within 96 px radius. |
+| **Ritual Velocity** | ×0.82 attack interval, ×1.16 projectile speed, ×1.06 move speed. |
+| **Critical Ash** | +18% critical chance. |
+| **Chainburst** | Every 5th attack erupts into an 8-projectile radial burst. |
+
+### Commands
+
+All player actions flow through the command pipeline via 8 `Relation` implementations in `AshwakeCommands.java`:
+
+`AshwakeMoveCommand` · `AshwakeFireCommand` · `AshwakeDashCommand` · `AshwakeSecondaryCommand` · `AshwakeTogglePauseCommand` · `AshwakeRestartCommand` · `AshwakeAdvanceRoomCommand` · `AshwakeSelectModifierCommand`
+
+### Benchmark Suite
+
+`AshwakeBenchmark` provides a headless profiling harness: 120 warmup frames + 720 measured frames, reporting per-frame update and render timings (avg, p95, max), peak entity counts, and run outcome.
+
+Three scenarios:
+
+| Scenario | CLI name | Setup |
+|---|---|---|
+| **Projectile Hell** | `projectile-hell` | 18 enemies (all types), 60 projectiles, 10 hazards, 6 pickups, all 6 modifiers active. Continuously replenished. |
+| **Boss Arena** | `boss-arena` | Boss + 6 elites, 24 boss comets, 6 hazards, 4 modifiers. |
+| **Reward Chamber** | `reward-chamber` | 12 pickups, 4 friendly hazards, modifier selection UI. |
+
+### Ashwake Mechanics
+
+- **Arena**: 960 × 640 px continuous space (not grid-based).
+- **Tick rate**: 60 FPS (16 ms timer, `1/60` second delta).
+- **Collision**: Circle–circle overlap for all entity interactions.
+- **Movement**: Continuous (WASD), velocity-based with impulse damping (0.86× per frame).
+- **Firing**: Arrow-key directional aiming with automatic fire when keys held.
+- **Scoring**: +35 per enemy, +500 per boss, +120 per room cleared, +45 per modifier, +3× essence value.
+- **Victory**: Defeating the boss in room 5.
+- **Death**: Health reaching 0.
+
+**Game loop:**
+
+```
+Timer (16ms) → queue MoveCommand + FireCommand → queue world → executeQueuedCommands → world.update() → pipeline.render() → repaint
+Key press → queue DashCommand/SecondaryCommand/PauseCommand/etc. → executeQueuedCommands → repaint
+```
+
+---
+
+## Requirements
+
+- **JDK 21** or later (uses enhanced `switch` with arrow-case syntax and pattern matching).
+- **No external runtime dependencies** — Swing is included with the standard JDK.
+- **LWJGL 3.4.1** (bundled in `lib/lwjgl/3.4.1/`) — required only for the OpenGL render backend; not needed for Java2D games.
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 ---
 
 ## Build
 
+<<<<<<< HEAD
+=======
+### Snake & Blockfall
+
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 From the repository root:
 
 ```powershell
 javac -d out *.java core/*.java
 ```
 
+<<<<<<< HEAD
 This compiles all source files into the `out/` directory, preserving the `com.example` package structure.
+=======
+This compiles all root source files and the `core/` package into `out/`.
+
+### Ashwake
+
+Ashwake depends on `core/`, `render/`, and `platform/`:
+
+```powershell
+javac -d out_ashwake core/*.java render/*.java platform/ios/*.java platform/mobile/*.java ashwake/*.java
+```
+
+This compiles into `out_ashwake/`.
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 ---
 
@@ -816,6 +1418,17 @@ java -cp out com.example.Main blockfall
 java -cp out com.example.Main snake
 ```
 
+<<<<<<< HEAD
+=======
+### Launch Ashwake
+
+Ashwake has its own launcher with a `main()` method:
+
+```powershell
+java -cp out_ashwake ashwake.AshwakeLauncher
+```
+
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 ---
 
 ## Controls
@@ -843,10 +1456,31 @@ java -cp out com.example.Main snake
 | `P` | Pause |
 | `R` | Restart |
 
+<<<<<<< HEAD
+=======
+### Ashwake
+
+| Key | Action |
+|---|---|
+| `W` / `A` / `S` / `D` | Move survivor |
+| `↑` / `↓` / `←` / `→` | Aim and fire (hold for auto-fire) |
+| `Shift` / `Space` | Dash (costs 22 energy) |
+| `Q` | Secondary ability — ashfire pulse (costs 40 energy) |
+| `E` / `Enter` | Advance to next room |
+| `1` / `2` / `3` | Select modifier upgrade |
+| `P` | Pause |
+| `R` | Restart run |
+
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 ---
 
 ## Smoke Tests
 
+<<<<<<< HEAD
+=======
+### Snake & Blockfall
+
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 Run both games' smoke tests:
 
 ```powershell
@@ -872,11 +1506,58 @@ Snake smoke test passed: head=6,11 score=0 length=3 gameOver=false
 Blockfall smoke test passed: score=36 lines=0 level=1 gameOver=false next=L
 ```
 
+<<<<<<< HEAD
 ---
 
 ## Output Directory
 
 The `out/` directory contains compiled `.class` files under `com/example/` and `com/example/core/`. It is generated by the `javac -d out` build command and can be safely deleted and regenerated.
+=======
+### Ashwake
+
+```powershell
+java -cp out_ashwake ashwake.AshwakeLauncher --smoke-test
+```
+
+Runs 420 ticks with seeded `Random(17L)`, reporting room progress, kills, pickups, enemy/projectile counts, modifier count, and run state.
+
+---
+
+## Benchmarks
+
+Ashwake includes a headless benchmark suite for profiling update and render performance under stress:
+
+```powershell
+java -cp out_ashwake ashwake.AshwakeLauncher --benchmark
+```
+
+Run a single scenario:
+
+```powershell
+java -cp out_ashwake ashwake.AshwakeLauncher --benchmark projectile-hell
+java -cp out_ashwake ashwake.AshwakeLauncher --benchmark boss-arena
+java -cp out_ashwake ashwake.AshwakeLauncher --benchmark reward-chamber
+```
+
+Each scenario runs 120 warmup frames followed by 720 measured frames and reports:
+
+- Update timing: avg, p95, max (ms).
+- Render timing: avg, p95, max (ms).
+- Peak entity counts: enemies, projectiles, hazards, pickups.
+- Run outcome: `runOver` / `victory`.
+
+---
+
+## Output Directories
+
+| Directory | Contents |
+|---|---|
+| `out/` | Compiled `.class` files for Snake + Blockfall (under `com/example/` and `com/example/core/`). |
+| `out_ashwake/` | Compiled `.class` files for Ashwake (under `ashwake/`, `core/`, `render/`, `platform/`). |
+| `out_verify/` | Verification build output. |
+
+All output directories are generated by `javac -d` and can be safely deleted and regenerated.
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 ---
 
@@ -886,6 +1567,7 @@ The Kavunn Engine is intentionally generic. Here are some ways to extend the pro
 
 | Extension | Approach |
 |---|---|
+<<<<<<< HEAD
 | **New game** | Create a world entity extending `Entity<Relation>`, add child entities, wire via `GameContextFactory.create()`, build a panel and launcher. No core changes needed — Blockfall is the proof. |
 | **New commands** | Implement `Relation` (e.g. `PauseCommand`, `SpeedChangeCommand`). Queue via `Context`. |
 | **New entities** | Extend `Entity<Relation>` (e.g. `Wall`, `PowerUp`). Register via `GameContextFactory`. |
@@ -893,13 +1575,33 @@ The Kavunn Engine is intentionally generic. Here are some ways to extend the pro
 | **Entity parameters** | Use the inherited `Params` system: `entity.add("speed", PrimaryTypeValue.integer(5))`. |
 | **Graph queries** | Use `EntitiesGraph.getAdjacentVertices()` to discover related entities at runtime. |
 | **Multiple worlds** | Create multiple `Context` instances, each with their own entity graph and command queue. |
+=======
+| **New game (simple)** | Create a world entity extending `Entity<Relation>`, add child entities, wire via `GameContextFactory.create()`, build a panel and launcher. No core changes needed — Blockfall is the proof. |
+| **New game (render pipeline)** | Extend `Planet`, register `Matter` layers, build a `DefaultRenderingPipeline` with render tasks, use `SwingRenderingPanel`. Ashwake is the proof. |
+| **New commands** | Implement `Relation` (e.g. `PauseCommand`, `SpeedChangeCommand`). Queue via `Context`. |
+| **New entities** | Extend `Entity<Relation>` (e.g. `Wall`, `PowerUp`). Register via `GameContextFactory`. |
+| **Add physics** | Create a `PhysicsScene` subclass, attach `PhysicsMatter` groups with `PhysicsBody` objects, run through `PhysicsPipeline.simulate()`. |
+| **Custom render backend** | Implement `RenderBackend` (e.g. Vulkan, WebGPU). The pipeline dispatches render tasks to any conforming backend. |
+| **Asset pipeline** | Use `AssetManager` to register `EntityAssetBundle` objects, run `prepareEntityAssets()` to produce GPU-ready meshes. |
+| **Mobile deployment** | Implement `IosSurface` or `MobileSurface`, wire through the appropriate `OpenGLESBridge` or `MetalBridge`. |
+| **Undo support** | `Context.commandHistory` already stores executed commands. Implement an `undo()` method on `Relation` to support rollback. |
+| **Entity parameters** | Use the inherited `Params` system: `entity.add("speed", PrimaryTypeValue.integer(5))`. |
+| **Graph queries** | Use `EntitiesGraph.getAdjacentVertices()` to discover related entities at runtime. |
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 ---
 
 ## Notes
 
 - **Blockfall** is intentionally harder than Snake: it adds gravity, rotation, line clearing, speed scaling, and stack pressure.
+<<<<<<< HEAD
 - **Main** defaults to Blockfall so the new game is easy to try immediately.
+=======
+- **Ashwake** is the most complex game: it demonstrates the render pipeline, continuous physics, roguelite progression, and benchmark tooling.
+- **Main** defaults to Blockfall. Ashwake has its own separate launcher (`AshwakeLauncher`).
+- The render and physics pipelines follow a **parallel architecture**: both use validate → lifecycle → bind → iterate layers → dispatch tasks → finalize.
+- The `physics/` engine is framework-ready but not yet integrated into any game; Ashwake uses its own circle-overlap collision for simplicity.
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 ---
 
@@ -907,4 +1609,8 @@ The Kavunn Engine is intentionally generic. Here are some ways to extend the pro
 
 This project is released under the **Kavunn Engine Source-Available License**. It is free for personal, educational, research, and other non-commercial use. Commercial use requires prior written permission.
 
+<<<<<<< HEAD
 See the full [LICENSE](LICENSE) file for details, or contact 📧 **[suleyman.artun@outlook.com](mailto:suleyman.artun@outlook.com)** for commercial licensing inquiries.
+=======
+See the full [LICENSE](LICENSE) file for details, or contact 📧 **[suleyman.artun@outlook.com](mailto:suleyman.artun@outlook.com)** for commercial licensing inquiries.
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)

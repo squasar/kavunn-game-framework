@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package com.example;
 
 import java.awt.Point;
@@ -5,6 +6,13 @@ import java.util.Random;
 
 import com.example.core.Entity;
 import com.example.core.Relation;
+=======
+import java.awt.Point;
+import java.util.Random;
+
+import core.Entity;
+import core.Relation;
+>>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 public class SnakeWorld extends Entity<Relation> {
 
