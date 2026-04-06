@@ -16,7 +16,6 @@ Three playable Java Swing games built on top of a custom-designed entity-command
 
 ![Ashwake — Arena survival roguelite](docs/ashwakeSS.PNG)
 ![Snake Game — Game Over screen](docs/screenshot.png)
->>>>>>> d667dbd (expand Kavunn engine scope with Ashwake and engine subsystems)
 
 ---
 
